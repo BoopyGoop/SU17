@@ -40,7 +40,7 @@ def genPosPoint(line):
     
     while (not(y > line.findyval(x))):
         stuckNum = stuckNum + 1
-        print("STUCKpos----> ", stuckNum)
+        #print("STUCKpos----> ", stuckNum)
         
         
         y = np.random.random()*100
@@ -63,7 +63,7 @@ def genNegPoint(line):
         
         
         stuckNum = stuckNum + 1
-        print("STUCKneg----> ", stuckNum)
+        #print("STUCKneg----> ", stuckNum)
         
         y = np.random.random()*100
         if (np.random.random() < 0.5):
