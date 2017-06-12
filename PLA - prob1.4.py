@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 #tune these params as needed
 pointAmount = 50
-globalIterations = 10
+globalIterations = 5
 learningRate = .01
 
 
@@ -40,7 +40,6 @@ def genPosPoint(line):
     
     while (not(y > line.findyval(x))):
         stuckNum = stuckNum + 1
-        #print("STUCKpos----> ", stuckNum)
         
         
         y = np.random.random()*100
@@ -63,7 +62,6 @@ def genNegPoint(line):
         
         
         stuckNum = stuckNum + 1
-        #print("STUCKneg----> ", stuckNum)
         
         y = np.random.random()*100
         if (np.random.random() < 0.5):
@@ -88,6 +86,7 @@ def train(xvec, lRate, iterations, actual):
     
     weights = [0, 0]
     
+
     for iteration in range(iterations):
         for j in range(len(xvec)):
             x = xvec[j]
@@ -95,8 +94,10 @@ def train(xvec, lRate, iterations, actual):
             error = actual[j] - prediction
             weights[0] = weights[0] + lRate*error
             weights[1] = weights[1] + lRate*error*x
-                
+           
 
+
+            
     return weights
 
 
@@ -156,7 +157,7 @@ for i in range(0,(int)(pointAmount/2)):
     points.append(posPoint)
     points.append(negPoint)  
     
-x = np.arange(-10,10,0.1)
+x = np.arange(-20,20,0.1)
 y = targFunc.findyval(x)
 
 plt.plot(x,y,c='black')
@@ -165,7 +166,16 @@ plt.ylabel('y axis')
 
 
 g = PLA()
-x = np.arange(-10,10,0.1)
+x = np.arange(-20,20,0.1)
 y = g.findyval(x)
 plt.plot(x,y,c='green')
+
+
+g2 = g
+g2.slope = -g2.slope
+x = np.arange(-20,20,0.1)
+y = g2.findyval(x)
+#plt.plot(x,y,c='orange')
+
+
 
