@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 
 #tune these params as needed
 pointAmount = 4
-globalIterations = 100
-learningRate = .01
+globalIterations = 10
+learningRate = 1
 
 
 class line(object):
@@ -106,7 +106,7 @@ def train(xvec, lRate, iterations, actual):
                 hasErrors = True
                 errorCount = errorCount +1
         
-        print("Iteration ", iteration, "| #errors ", errorCount )
+        #print("Iteration ", iteration, "| #errors ", errorCount )
         
         y = line(weights[1], weights[0])
         xp = np.arange(-20,20,0.1)
