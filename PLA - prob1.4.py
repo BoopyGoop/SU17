@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 
 #tune these params as needed
 pointAmount = 4
-globalIterations = 10
 learningRate = 1
+dimension = 0
 
 
 class line(object):
@@ -72,71 +72,77 @@ def genNegPoint(line):
 
 
 def predict(x, weights):
-    neuronFires = 0
-    activation = weights[0] + weights[1]*x
+    #find activation val with dot product
+    
+    xvec = x
+    xvec[len(xvec)-1] = 1
+    
+    neuronFires = -1
+    activation = np.dot(xvec, weights)
+    activation = sum(activation[:])
+    print(activation)
     
     if activation > 0:
         neuronFires = 1
         
     return neuronFires
 
-def train(xvec, lRate, iterations, actual):
+
+
+def train(data, lRate):
     
-    weights = [0, 0]
+    #generalized to be n dimensional
+    weights = np.zeros((len(data[0]),1), dtype = float)
     
     hasErrors = True
     iterNum = 0
 
-    for iteration in range(iterations):
-    #while(hasErrors): 
+    while(hasErrors):
+        
         iterNum = iterNum +1
         hasErrors = False
-        
         errorCount = 0
-        for j in range(1, len(xvec)):
-            x = xvec[j]
+        
+        for x in data:
             prediction = predict(x, weights)
-            error = actual[j] - prediction
+            error = x[len(x)-1] * prediction
+            #print(error)
             
-            weights[0] = weights[0] + lRate*error
-            weights[1] = weights[1] + lRate*error*x
-            
-            
-            if (error != 0):
+            if (error < 0):
+                #update weights
+                
+                xvec = x
+                xvec[len(xvec)-1] = 1
+                weights = weights + lRate*error*xvec
+                
                 hasErrors = True
                 errorCount = errorCount +1
         
-        #print("Iteration ", iteration, "| #errors ", errorCount )
+        print("Iteration ", iterNum, "| #errors ", errorCount )
         
-        y = line(weights[1], weights[0])
-        xp = np.arange(-20,20,0.1)
-        yp = y.findyval(xp)
-        plt.plot(xp,yp,c='green')
 
-            
+    print(weights)        
     return weights
 
 
 def PLA(points):
-
-    xarr = []
-    xarr.append(1)
-    yarr = []
-    yarr.append(0)
     
-    for point in points:
-        xarr.append(point[0])
-        yarr.append(point[1])
-    xvec = np.array(xarr)    
+    dimension = len(points[0])
     
-    signvec = np.empty_like(xvec)
-    for i in range(signvec.size):
+    data = np.zeros((pointAmount+1, dimension+1), dtype = float)
+    data[0, :] = 1
+    
+    for i in range(pointAmount):
+        data[i+1, :dimension] = points[i]
+      
+    for i in range(pointAmount+1):
         if (i%2 == 0):
-            signvec[i] = 0
+            data[i, dimension] = -1
         else:
-            signvec[i] = 1
+            data[i, dimension] = 1
     
-    weights = train(xvec, learningRate, globalIterations, signvec)
+    
+    weights = train(data, learningRate)
     
     print("Weights: ", weights)
     
@@ -144,9 +150,6 @@ def PLA(points):
     g = line(weights[1],weights[0])
     
     return g
-
-
-    
 
 
 
