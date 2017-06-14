@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 #tune these params as needed
 pointAmount = 4
-learningRate = 1
+learningRate = .1
 dimension = 0
 
 
@@ -71,20 +71,19 @@ def genNegPoint(line):
 
 
 
-def predict(x, weights):
+def predict(x, pweights):
     #find activation val with dot product
     
-    xvec = x
-    xvec[len(xvec)-1] = 1
+    xvec = x[:len(x)-1]
     
     neuronFires = -1
-    activation = np.dot(xvec, weights)
-    activation = sum(activation[:])
-    print(activation)
+    activation = np.dot(xvec, pweights)
+    activation = np.sum(activation)
     
-    if activation > 0:
+    if activation >= 0:
         neuronFires = 1
-        
+    
+    print("PREDICTED:::::: ", neuronFires)
     return neuronFires
 
 
@@ -92,36 +91,44 @@ def predict(x, weights):
 def train(data, lRate):
     
     #generalized to be n dimensional
-    weights = np.zeros((len(data[0]),1), dtype = float)
-    
+    weights = np.zeros((len(data[0])-1), dtype = float)
     hasErrors = True
     iterNum = 0
 
+    #print(data)
+    
     while(hasErrors):
         
         iterNum = iterNum +1
         hasErrors = False
         errorCount = 0
-        
+
         for x in data:
+            print(x)
             prediction = predict(x, weights)
-            error = x[len(x)-1] * prediction
-            #print(error)
+            actual = x[len(x)-1]
+            print("ACTUAL:::::: ", actual)
+            
+            error = actual * prediction
+            print("ERROR:::::::::: ", error, "\n")
             
             if (error < 0):
                 #update weights
                 
-                xvec = x
-                xvec[len(xvec)-1] = 1
-                weights = weights + lRate*error*xvec
+                print("UPDATING")
+                weights = weights + lRate*error*x[:len(x)-1]
+                #weights = weights + lRate*prediction*x[:len(x)-1]
+
+                print("New weights----> ", weights, "\n \n")
                 
                 hasErrors = True
                 errorCount = errorCount +1
         
-        print("Iteration ", iterNum, "| #errors ", errorCount )
+        #print("Iteration ", iterNum, "| #errors ", errorCount )
         
-
-    print(weights)        
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        
+ 
     return weights
 
 
@@ -129,27 +136,28 @@ def PLA(points):
     
     dimension = len(points[0])
     
-    data = np.zeros((pointAmount+1, dimension+1), dtype = float)
-    data[0, :] = 1
     
+    #constructs data matrix with labels(last column) from points provided
+    data = np.zeros((pointAmount, dimension+2), dtype = float) 
     for i in range(pointAmount):
-        data[i+1, :dimension] = points[i]
-      
-    for i in range(pointAmount+1):
+        data[i, :dimension] = points[i]
+    for i in range(pointAmount):
+        data[i, dimension] = 1
         if (i%2 == 0):
-            data[i, dimension] = -1
+            data[i, dimension+1] = 1
         else:
-            data[i, dimension] = 1
+            data[i, dimension+1] = -1
     
     
+    
+    #train the weights
     weights = train(data, learningRate)
+    
+    
     
     print("Weights: ", weights)
     
-    
-    g = line(weights[1],weights[0])
-    
-    return g
+    return weights
 
 
 
@@ -183,7 +191,11 @@ plt.xlabel('x axis')
 plt.ylabel('y axis')
 
 
-g = PLA(points)
+learnedWeights = PLA(points)
+gSlope = -(learnedWeights[0]/learnedWeights[1])
+gInt = -(learnedWeights[2]/learnedWeights[1])
+
+g = line(gSlope, gInt)
 
 x = np.arange(-20,20,0.1)
 y = g.findyval(x)
