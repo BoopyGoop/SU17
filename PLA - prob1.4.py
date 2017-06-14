@@ -13,9 +13,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #tune these params as needed
-pointAmount = 4
+pointAmount = 100
 learningRate = .1
-dimension = 0
 
 
 class line(object):
@@ -35,17 +34,10 @@ def genPosPoint(line):
     y = np.random.random()*20
     if (np.random.random() < 0.5):
         y = -y
-    
-    stuckNum = 0
-    
     while (not(y > line.findyval(x))):
-        stuckNum = stuckNum + 1
-        
-        
         y = np.random.random()*100
         if (np.random.random() < 0.5):
             y = -y
-    
     return (x,y)
 
     
@@ -55,24 +47,17 @@ def genNegPoint(line):
         x = -x
     y = np.random.random()*20
     if (np.random.random() < 0.5):
-        y = -y
-        
-    stuckNum = 0
-    while (not(y < line.findyval(x))):
-        
-        
-        stuckNum = stuckNum + 1
-        
+        y = -y   
+    while (not(y < line.findyval(x))):       
         y = np.random.random()*100
         if (np.random.random() < 0.5):
             y = -y
-
     return (x, y)
 
 
 
 def predict(x, pweights):
-    #find activation val with dot product
+    #find activation val with dot product & sum
     
     xvec = x[:len(x)-1]
     
@@ -82,60 +67,62 @@ def predict(x, pweights):
     
     if activation >= 0:
         neuronFires = 1
-    
-    print("PREDICTED:::::: ", neuronFires)
     return neuronFires
 
 
 
 def train(data, lRate):
     
-    #generalized to be n dimensional
+    #generalized to handle n-dimensional data
     weights = np.zeros((len(data[0])-1), dtype = float)
     hasErrors = True
     iterNum = 0
-
-    #print(data)
     
+    
+    #loops until all points are classified correctly
     while(hasErrors):
         
         iterNum = iterNum +1
         hasErrors = False
         errorCount = 0
 
-        for x in data:
-            print(x)
-            prediction = predict(x, weights)
-            actual = x[len(x)-1]
-            print("ACTUAL:::::: ", actual)
-            
-            error = actual * prediction
-            print("ERROR:::::::::: ", error, "\n")
-            
-            if (error < 0):
-                #update weights
-                
-                print("UPDATING")
-                weights = weights + lRate*error*x[:len(x)-1]
-                #weights = weights + lRate*prediction*x[:len(x)-1]
 
-                print("New weights----> ", weights, "\n \n")
+        for x in data:
+            #predict classification of point based on weights, compare to actual classification
+            prediction = predict(x, weights)
+            actual = x[len(x)-1]   
+            error = actual * prediction
+            
+            
+            
+            if (error < 0): #if point is misclassified...
+                #update weights
+                weights = weights + lRate*actual*x[:len(x)-1]
+                
+
+                #graphs the line with the updated weights
+                '''
+                qSlope = -(weights[0]/weights[1])
+                qInt = -(weights[2]/weights[1])
+                    
+                q = line(qSlope, qInt)
+                
+                xp = np.arange(-20,20,0.1)
+                yp = q.findyval(xp)
+                plt.plot(xp,yp,c='red')
+                '''
                 
                 hasErrors = True
                 errorCount = errorCount +1
-        
-        #print("Iteration ", iterNum, "| #errors ", errorCount )
-        
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        
+                
+                
+        print("Iteration ", iterNum, "| #errors ", errorCount )
  
     return weights
 
 
 def PLA(points):
-    
     dimension = len(points[0])
-    
     
     #constructs data matrix with labels(last column) from points provided
     data = np.zeros((pointAmount, dimension+2), dtype = float) 
@@ -148,30 +135,25 @@ def PLA(points):
         else:
             data[i, dimension+1] = -1
     
-    
-    
     #train the weights
     weights = train(data, learningRate)
     
-    
-    
     print("Weights: ", weights)
-    
     return weights
 
 
 
-
+#randomly generates target function        
 slope = np.random.random()*5
 if (np.random.random() < 0.5):
-    slope = -slope
-            
+    slope = -slope           
 yint = np.random.random()*5
 if (np.random.random() < 0.5):
     yint = -yint
-        
 targFunc = line(slope, yint)
 
+
+#generates equal number of +1 and -1 classified points
 points = []
 for i in range(0,(int)(pointAmount/2)):
     posPoint = genPosPoint(targFunc)
@@ -182,21 +164,24 @@ for i in range(0,(int)(pointAmount/2)):
     
     points.append(posPoint)
     points.append(negPoint)  
+  
     
+#plot target function
 x = np.arange(-20,20,0.1)
 y = targFunc.findyval(x)
-
 plt.plot(x,y,c='black')
 plt.xlabel('x axis')
 plt.ylabel('y axis')
 
 
+#use points to generate weights
 learnedWeights = PLA(points)
+
+
+#plot learned function
 gSlope = -(learnedWeights[0]/learnedWeights[1])
 gInt = -(learnedWeights[2]/learnedWeights[1])
-
 g = line(gSlope, gInt)
-
 x = np.arange(-20,20,0.1)
 y = g.findyval(x)
 plt.plot(x,y,c='green')
