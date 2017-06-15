@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #tune these params as needed
-pointAmount = 100
+pointAmount = 50
 learningRate = .1
 
 
@@ -25,36 +25,6 @@ class line(object):
         
     def findyval(self, xval):
         return xval*self.slope + self.yintercept
-
-
-
-#combine point functions
-def genPosPoint(line):
-    x = np.random.random()*20
-    if (np.random.random() < 0.5):
-        x = -x
-    y = np.random.random()*20
-    if (np.random.random() < 0.5):
-        y = -y
-    while (not(y > line.findyval(x))):
-        y = np.random.random()*100
-        if (np.random.random() < 0.5):
-            y = -y
-    return (x,y)
-
-    
-def genNegPoint(line):
-    x = np.random.random()*20
-    if (np.random.random() < 0.5):
-        x = -x
-    y = np.random.random()*20
-    if (np.random.random() < 0.5):
-        y = -y   
-    while (not(y < line.findyval(x))):       
-        y = np.random.random()*100
-        if (np.random.random() < 0.5):
-            y = -y
-    return (x, y)
 
 
 
@@ -89,15 +59,12 @@ def genPoint(line):
 
 
 def predict(x, pweights):
-    #find activation val with dot product & sum
+    #find activation val with dot product
     
-    xvec = x[:len(x)-1]
-
+    xvec = np.matrix(x[1:])
+    weightsVec = np.matrix(pweights)
     
-    #transpose before dot so you don't have to sum
-    activation = np.dot(xvec, pweights)
-    activation = np.sum(activation)
-    
+    activation = np.dot(xvec, weightsVec.transpose())
     
     if activation >= 0:
         return 1
@@ -108,11 +75,9 @@ def predict(x, pweights):
 
 def train(data, lRate):
     
-    #generalized to handle n-dimensional data
     weights = np.zeros((len(data[0])-1), dtype = float)
     hasErrors = True
     iterNum = 0
-    
     
     #loops until all points are classified correctly
     while(hasErrors):
@@ -120,32 +85,18 @@ def train(data, lRate):
         iterNum = iterNum +1
         hasErrors = False
         errorCount = 0
-
-
+        
         for x in data:
             #predict classification of point based on weights, compare to actual classification
             prediction = predict(x, weights)
-            actual = x[len(x)-1]   
+            actual = x[0]   
             error = actual * prediction
-            
             
             
             if (error < 0): #if point is misclassified...
                 #update weights
-                weights = weights + lRate*actual*x[:len(x)-1]
-                
-
-                #graphs the line with the updated weights
-                '''
-                qSlope = -(weights[0]/weights[1])
-                qInt = -(weights[2]/weights[1])
-                    
-                q = line(qSlope, qInt)
-                
-                xp = np.arange(-20,20,0.1)
-                yp = q.findyval(xp)
-                plt.plot(xp,yp,c='red')
-                '''
+                weights = weights + lRate*actual*x[1:]
+            
                 
                 hasErrors = True
                 errorCount = errorCount +1
@@ -160,8 +111,8 @@ def PLA(points):
     dimension = len(points[0])
     
     #constructs data matrix with labels(last column) from points provided
-    data = np.zeros((pointAmount, dimension+2), dtype = float) 
-    for i in range(1, pointAmount):
+    data = np.zeros((pointAmount, dimension+1), dtype = float) 
+    for i in range(pointAmount):
         data[i, :dimension] = points[i]
         data[i, dimension] = 1
         
@@ -195,15 +146,15 @@ for i in range(0, pointAmount):
         color = 'red'
               
         
-    #this scatter may not work
-    plt.scatter(point[1:len(point)-1],  c=color)
+    #TODO this could be better generalized?
+    plt.scatter(point[1], point[2], c=color)
     points.append(point)
   
     
 #plot target function
 x = np.arange(-20,20,0.1)
 y = targFunc.findyval(x)
-plt.plot(x,y,c='black')
+plt.plot(x,y,c='black', label = "Target Function")
 plt.xlabel('x axis')
 plt.ylabel('y axis')
 
@@ -218,8 +169,8 @@ gInt = -(learnedWeights[2]/learnedWeights[1])
 g = line(gSlope, gInt)
 x = np.arange(-20,20,0.1)
 y = g.findyval(x)
-plt.plot(x,y,c='green')
+plt.plot(x,y,c='green', label = "Learned Function")
 
-
+plt.legend(loc='upper left')
 
 
