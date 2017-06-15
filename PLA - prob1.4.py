@@ -27,6 +27,8 @@ class line(object):
         return xval*self.slope + self.yintercept
 
 
+
+#combine point functions
 def genPosPoint(line):
     x = np.random.random()*20
     if (np.random.random() < 0.5):
@@ -56,18 +58,51 @@ def genNegPoint(line):
 
 
 
+def genPoint(line):
+    
+    label = -1
+    if (np.random.random() < 0.5):
+        label = 1
+    
+    
+    x = np.random.random()*20
+    if (np.random.random() < 0.5):
+        x = -x
+    y = np.random.random()*20
+    if (np.random.random() < 0.5):
+        y = -y
+    
+    if label == -1:
+        while (not(y < line.findyval(x))):       
+            y = np.random.random()*100
+            if (np.random.random() < 0.5):
+                y = -y
+    else:
+        while (not(y > line.findyval(x))):       
+            y = np.random.random()*100
+            if (np.random.random() < 0.5):
+                y = -y
+            
+    return [label, x, y]
+
+
+
+
 def predict(x, pweights):
     #find activation val with dot product & sum
     
     xvec = x[:len(x)-1]
+
     
-    neuronFires = -1
+    #transpose before dot so you don't have to sum
     activation = np.dot(xvec, pweights)
     activation = np.sum(activation)
     
+    
     if activation >= 0:
-        neuronFires = 1
-    return neuronFires
+        return 1
+    
+    return -1 
 
 
 
@@ -126,14 +161,10 @@ def PLA(points):
     
     #constructs data matrix with labels(last column) from points provided
     data = np.zeros((pointAmount, dimension+2), dtype = float) 
-    for i in range(pointAmount):
+    for i in range(1, pointAmount):
         data[i, :dimension] = points[i]
-    for i in range(pointAmount):
         data[i, dimension] = 1
-        if (i%2 == 0):
-            data[i, dimension+1] = 1
-        else:
-            data[i, dimension+1] = -1
+        
     
     #train the weights
     weights = train(data, learningRate)
@@ -155,15 +186,18 @@ targFunc = line(slope, yint)
 
 #generates equal number of +1 and -1 classified points
 points = []
-for i in range(0,(int)(pointAmount/2)):
-    posPoint = genPosPoint(targFunc)
-    negPoint = genNegPoint(targFunc)
+for i in range(0, pointAmount):
+    point = genPoint(targFunc)
     
-    plt.scatter(posPoint[0],posPoint[1], c='blue')
-    plt.scatter(negPoint[0],negPoint[1], c='red')
-    
-    points.append(posPoint)
-    points.append(negPoint)  
+    if point[0] == 1:
+        color = 'blue'
+    else:
+        color = 'red'
+              
+        
+    #this scatter may not work
+    plt.scatter(point[1:len(point)-1],  c=color)
+    points.append(point)
   
     
 #plot target function
