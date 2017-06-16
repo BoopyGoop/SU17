@@ -9,14 +9,13 @@ Implementation of Logistic Regression Algorithm to distinguish written numbers 3
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 testFile = "zip.test"
 trainFile = "zip.train"
 
 #TODO modify these params to be dynamically decided
-iterations = 50
-learningRate = 0.1
+iterations = 10
+learningRate = .1
 positiveLabel = 5
 
 
@@ -29,7 +28,7 @@ def computeGradient(data, weights, labelVec):
     
     #summation
     for i in range(0, pointAmount-1):
-        x = data[i[1:]]
+        x = data[i][1:]
         
         denom = 1 + np.exp(labelVec[i]*np.dot(weights.transpose(), x))
         
@@ -56,28 +55,24 @@ def predict(x, pweights):
     
 def train(data, lRate, positiveLabel):
     #initialize weights to 0
-    weights = np.zeros((len(data[0])-1), dtype = float)
     pointAmount = len(data[0])-1
-                
+    weights = np.zeros(pointAmount, dtype = float)
+    
+    
     #construct label vector
+    labelVec = np.zeros(pointAmount, dtype = int)
     for k in range(pointAmount):
         if (data[k,0] == positiveLabel):
-            label = 1
+            labelVec[k] = 1
         else:
-            label = -1                        
+            labelVec[k] = -1                        
     
     for j in range(iterations):
         errorCount = 0
-        for x in data:
+        
+        for x in data:                
             
-            #TODO just make a seperate label vector
-            if (x[0] == positiveLabel):
-                label = 1
-            else:
-                label = -1
-                
-            
-            if (label*predict(x, weights) <= 0): #if point is misclassified...
+            if (labelVec[j]*predict(x, weights) <= 0): #if point is misclassified...
                 #compute gradient
                 gradient = computeGradient(data, weights, labelVec)
                 direction = -gradient
@@ -90,23 +85,40 @@ def train(data, lRate, positiveLabel):
                 
         print("Iteration ", j, "| #errors ", errorCount )
         
-        
-        
-#TODO this function is probably unnecessary...
-def logisticRegressionAlgo(data, positiveLabel):
-    weights = train(data, learningRate, positiveLabel)
+    
+    return weights  
+  
+    
+def test(data, weights):
+    
+    #TODO add a comparison to the labels provided by the test data
+    pointAmount = len(data[0])-1
+    percentVec = np.zeros(pointAmount)
+    
+    for i in range(pointAmount):
+        percentVec[i] = sigFunction(weights, data[i][1:])
+    
+    
+    return percentVec
+    
 
-    return weights
 
 
+trainData = np.loadtxt(trainFile)
+print("Training Data from: ", trainFile)
+print("Dimension: ", len(trainData[0])-1)
+print("# of datapoints: ", len(trainData))
+weights = train(trainData, learningRate, positiveLabel)
+print("Weights: ", weights)
 
+print("\n")
 
-#import training data
-data = np.loadtxt(trainFile)
-print(data)
-print("Cols:", len(data[0]))
-print("Rows:", len(data))
+testData = np.loadtxt(trainFile)
+print("Testing Data from: ", testFile)
+print("Dimension: ", len(testData[0])-1)
+print("# of datapoints: ", len(testData))
 
-weights = logisticRegressionAlgo(data, positiveLabel)
+percentVec = test(testData, weights)
 
+print(percentVec)
 
