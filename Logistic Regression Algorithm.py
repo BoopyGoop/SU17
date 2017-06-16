@@ -20,10 +20,7 @@ learningRate = .1
 positiveLabel = 5
 
 
-
-
 def computeGradient(data, weights, labelVec):
-
     dimension = len(data[0])-1
     innerSum = 0
     
@@ -47,7 +44,6 @@ def computeGradient(data, weights, labelVec):
 def sigFunction(weights, x):
     return 1/(1+np.exp(-np.dot(weights.transpose(), x)))
     
-
     
 def predict(x, pweights):
     #find activation val with dot product
@@ -58,8 +54,7 @@ def train(data, lRate, positiveLabel):
     #initialize weights to 0
     dimension = len(data[0])-1
     weights = np.zeros(dimension, dtype = float)
-    
-    
+     
     #construct label vector
     labelVec = np.zeros(dimension, dtype = int)
     for k in range(dimension):
@@ -72,7 +67,6 @@ def train(data, lRate, positiveLabel):
         errorCount = 0
         
         for x in data:                
-            
             if (labelVec[j]*predict(x, weights) <= 0): #if point is misclassified...
                 #compute gradient
                 gradient = computeGradient(data, weights, labelVec)
@@ -80,28 +74,15 @@ def train(data, lRate, positiveLabel):
                 
                 #update weights
                 weights = weights + lRate*direction
-                
-                
                 errorCount = errorCount +1
                 
         print("Iteration ", j, "| #errors ", errorCount )
-        
     
     return weights  
   
     
 def test(data, weights, positiveLabel):
-    
-    dimension = len(data[0])-1
     pointAmount = len(data)
-    
-#    labelVec = np.zeros(dimension, dtype = int)
-#    for k in range(dimension):
-#        if (data[k][0] == positiveLabel):
-#            labelVec[k] = 1
-#        else:
-#            labelVec[k] = -1                 
-#            
     
     percentVec = np.zeros(pointAmount)
     
@@ -118,14 +99,13 @@ def test(data, weights, positiveLabel):
     return errorVec
     
 
-
 #TRAINING DATA
 trainData = np.loadtxt(trainFile)
 print("Training Data from: ", trainFile)
 print("Dimension: ", len(trainData[0])-1)
 print("# of datapoints: ", len(trainData))
 weights = train(trainData, learningRate, positiveLabel)
-print("Weights: ", weights)
+#print("Weights: ", weights)
 
 print("\n")
 
@@ -135,16 +115,18 @@ testData = np.loadtxt(testFile)
 print("Testing Data from: ", testFile)
 print("Dimension: ", len(testData[0])-1)
 print("# of datapoints: ", len(testData))
-
 errorVec = test(testData, weights, positiveLabel)
-print("Errors: ", errorVec)
+#print("Errors: ", errorVec)
 
 
 #plot the errors
+
+lookPoints = []
 xval = 0
 for error in errorVec:
     if error>0.5:
         color = 'red'
+        lookPoints.append(xval)
     else:
         color = 'blue'
     plt.scatter(xval, error, c=color)
@@ -153,5 +135,8 @@ for error in errorVec:
 plt.xlabel('data')
 plt.ylabel('error')
 
+print (">0.5 error at: ", lookPoints)
+
+##LEFT OFF AT INVESTIGATING/SHOWING INADMISSABLE ERRORS
 
 
