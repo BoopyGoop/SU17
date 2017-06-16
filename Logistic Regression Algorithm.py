@@ -9,6 +9,7 @@ Implementation of Logistic Regression Algorithm to distinguish written numbers 3
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 testFile = "zip.test"
 trainFile = "zip.train"
@@ -23,11 +24,11 @@ positiveLabel = 5
 
 def computeGradient(data, weights, labelVec):
 
-    pointAmount = len(data[0])-1
+    dimension = len(data[0])-1
     innerSum = 0
     
     #summation
-    for i in range(0, pointAmount-1):
+    for i in range(0, dimension-1):
         x = data[i][1:]
         
         denom = 1 + np.exp(labelVec[i]*np.dot(weights.transpose(), x))
@@ -39,7 +40,7 @@ def computeGradient(data, weights, labelVec):
         innerSum = innerSum +(num/denom)
     
     #TODO divide problem?
-    gradient = -(innerSum/pointAmount)
+    gradient = -(innerSum/dimension)
     return gradient
 
 
@@ -55,13 +56,13 @@ def predict(x, pweights):
     
 def train(data, lRate, positiveLabel):
     #initialize weights to 0
-    pointAmount = len(data[0])-1
-    weights = np.zeros(pointAmount, dtype = float)
+    dimension = len(data[0])-1
+    weights = np.zeros(dimension, dtype = float)
     
     
     #construct label vector
-    labelVec = np.zeros(pointAmount, dtype = int)
-    for k in range(pointAmount):
+    labelVec = np.zeros(dimension, dtype = int)
+    for k in range(dimension):
         if (data[k,0] == positiveLabel):
             labelVec[k] = 1
         else:
@@ -89,21 +90,36 @@ def train(data, lRate, positiveLabel):
     return weights  
   
     
-def test(data, weights):
+def test(data, weights, positiveLabel):
     
-    #TODO add a comparison to the labels provided by the test data
-    pointAmount = len(data[0])-1
+    dimension = len(data[0])-1
+    pointAmount = len(data)
+    
+#    labelVec = np.zeros(dimension, dtype = int)
+#    for k in range(dimension):
+#        if (data[k][0] == positiveLabel):
+#            labelVec[k] = 1
+#        else:
+#            labelVec[k] = -1                 
+#            
+    
     percentVec = np.zeros(pointAmount)
     
     for i in range(pointAmount):
         percentVec[i] = sigFunction(weights, data[i][1:])
     
+    errorVec = np.zeros(pointAmount)
+    for j in range(pointAmount):
+        if (data[j][0] == positiveLabel):
+            errorVec[j] = 1 - percentVec[j]
+        else:
+            errorVec[j] = percentVec[j]
     
-    return percentVec
+    return errorVec
     
 
 
-
+#TRAINING DATA
 trainData = np.loadtxt(trainFile)
 print("Training Data from: ", trainFile)
 print("Dimension: ", len(trainData[0])-1)
@@ -113,12 +129,29 @@ print("Weights: ", weights)
 
 print("\n")
 
-testData = np.loadtxt(trainFile)
+
+#TESTING DATA
+testData = np.loadtxt(testFile)
 print("Testing Data from: ", testFile)
 print("Dimension: ", len(testData[0])-1)
 print("# of datapoints: ", len(testData))
 
-percentVec = test(testData, weights)
+errorVec = test(testData, weights, positiveLabel)
+print("Errors: ", errorVec)
 
-print(percentVec)
+
+#plot the errors
+xval = 0
+for error in errorVec:
+    if error>0.5:
+        color = 'red'
+    else:
+        color = 'blue'
+    plt.scatter(xval, error, c=color)
+    xval = xval+1
+
+plt.xlabel('data')
+plt.ylabel('error')
+
+
 
