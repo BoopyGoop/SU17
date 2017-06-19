@@ -15,25 +15,25 @@ testFile = "zip.test"
 trainFile = "zip.train"
 
 #TODO modify these params to be dynamically decided?
-iterations = 10
+iterations = 3
 learningRate = .1
 
 
 positiveLabel = 5
 
-
 def computeGradient(data, weights, labelVec):
     dimension = len(data[0])-1
+    sampleSize = len(data)
     innerSum = 0
-    
+
     #summation
-    for i in range(0, dimension-1):
+    for i in range(sampleSize):
         x = data[i][1:]
         
-        denom = 1 + np.exp(labelVec[i]*np.dot(weights.transpose(), x))
+        denominator = 1 + np.exp(labelVec[i]*np.dot(weights.transpose(), x))
         
-        num = np.dot(labelVec[i], x)
-        innerSum = innerSum +(num/denom)
+        numerator = np.dot(labelVec[i], x)
+        innerSum = innerSum +(numerator/denominator)
     
     gradient = -(innerSum/dimension)
     return gradient
@@ -48,32 +48,24 @@ def predict(x, pweights):
     return np.dot(x[1:], pweights.transpose())
 
     
-def train(data, lRate, positiveLabel):
+
+#take construction of label vec outside method
+def train(data, lRate, labelVec):
     #initialize weights to 0
     dimension = len(data[0])-1
     weights = np.zeros(dimension, dtype = float)
      
-    #construct label vector
-    labelVec = np.zeros(dimension, dtype = int)
-    for k in range(dimension):
-        if (data[k,0] == positiveLabel):
-            labelVec[k] = 1
-        else:
-            labelVec[k] = -1                        
-    
     for j in range(iterations):
-
-        
-        for x in data:                
-            if (labelVec[j]*predict(x, weights) <= 0): #if point is misclassified...
-                #compute gradient
-                gradient = computeGradient(data, weights, labelVec)
-                direction = -gradient
-                                
-                #update weights
-                weights = weights + lRate*direction
-                
+                        
         print("Running iteration ", j)
+        
+        for x in data:
+            #compute gradient
+            gradient = computeGradient(data, weights, labelVec)
+            direction = -gradient
+                                
+            #update weights
+            weights = weights + lRate*direction
     
     return weights  
   
@@ -94,6 +86,19 @@ def test(data, weights, positiveLabel):
             errorVec[j] = percentVec[j]
     
     return errorVec
+
+def makeLabelVec(data, positiveLabel):
+    #construct label vector
+    sampleSize = len(data)
+    labelVec = np.zeros(sampleSize, dtype = int)
+    for k in range(sampleSize):
+        if (data[k][0] == positiveLabel):
+            labelVec[k] = 1
+        else:
+            labelVec[k] = -1    
+    return labelVec
+                    
+    
     
 
 #TRAINING DATA
@@ -101,7 +106,9 @@ trainData = np.loadtxt(trainFile)
 print("Training Data from: ", trainFile)
 print("Dimension: ", len(trainData[0])-1)
 print("# of datapoints: ", len(trainData))
-weights = train(trainData, learningRate, positiveLabel)
+labelVec = makeLabelVec(trainData, positiveLabel)
+
+weights = train(trainData, learningRate, labelVec)
 #print("Weights: ", weights)
 
 print("\n")
@@ -156,7 +163,8 @@ def plotImage(imageNumber):
 
     plt.figure()
     plt.imshow(imageMatrix, cmap = 'gray')
-    print("IMAGE", imageNum, "WAS LABELED AS:", label)
+    titleString = "Image " + str(imageNum) + " labeled as: " + str(label)
+    plt.title(titleString)
     
     
     
