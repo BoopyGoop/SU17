@@ -14,9 +14,11 @@ import matplotlib.pyplot as plt
 testFile = "zip.test"
 trainFile = "zip.train"
 
-#TODO modify these params to be dynamically decided
+#TODO modify these params to be dynamically decided?
 iterations = 10
 learningRate = .1
+
+
 positiveLabel = 5
 
 
@@ -30,13 +32,9 @@ def computeGradient(data, weights, labelVec):
         
         denom = 1 + np.exp(labelVec[i]*np.dot(weights.transpose(), x))
         
-        #TODO dot product or just multiply?
         num = np.dot(labelVec[i], x)
-        
-        #TODO probably will have problems with the divide...
         innerSum = innerSum +(num/denom)
     
-    #TODO divide problem?
     gradient = -(innerSum/dimension)
     return gradient
 
@@ -64,19 +62,18 @@ def train(data, lRate, positiveLabel):
             labelVec[k] = -1                        
     
     for j in range(iterations):
-        errorCount = 0
+
         
         for x in data:                
             if (labelVec[j]*predict(x, weights) <= 0): #if point is misclassified...
                 #compute gradient
                 gradient = computeGradient(data, weights, labelVec)
                 direction = -gradient
-                
+                                
                 #update weights
                 weights = weights + lRate*direction
-                errorCount = errorCount +1
                 
-        print("Iteration ", j, "| #errors ", errorCount )
+        print("Running iteration ", j)
     
     return weights  
   
@@ -137,6 +134,34 @@ plt.ylabel('error')
 
 print (">0.5 error at: ", lookPoints)
 
-##LEFT OFF AT INVESTIGATING/SHOWING INADMISSABLE ERRORS
+
+def plotImage(imageNumber):
+    imageNum = imageNumber
+    imageVec = testData[imageNum][1:]
+    
+    label = testData[imageNum][0]
+    if (label == positiveLabel):
+        label = 5
+    else:
+        label = 3
+    
+    imageMatrix = np.zeros((16,16))
+    
+    current = 0
+    for row in range(16):
+         for column in range(16):
+           
+             imageMatrix[row][column] = imageVec[current]
+             current = current +1
+
+    plt.figure()
+    plt.imshow(imageMatrix, cmap = 'gray')
+    print("IMAGE", imageNum, "WAS LABELED AS:", label)
+    
+    
+    
+#investigate points with high error
+for i in range(len(lookPoints)):
+    plotImage(lookPoints[i])
 
 
