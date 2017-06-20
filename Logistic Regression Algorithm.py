@@ -15,7 +15,7 @@ testFile = "zip.test"
 trainFile = "zip.train"
 
 #TODO modify these params to be dynamically decided?
-iterations = 3
+iterations = 5 
 learningRate = .1
 
 
@@ -49,7 +49,6 @@ def predict(x, pweights):
 
     
 
-#take construction of label vec outside method
 def train(data, lRate, labelVec):
     #initialize weights to 0
     dimension = len(data[0])-1
@@ -57,7 +56,7 @@ def train(data, lRate, labelVec):
      
     for j in range(iterations):
                         
-        print("Running iteration ", j)
+        print("Running iteration ", j, "of", iterations-1)
         
         for x in data:
             #compute gradient
@@ -87,6 +86,7 @@ def test(data, weights, positiveLabel):
     
     return errorVec
 
+
 def makeLabelVec(data, positiveLabel):
     #construct label vector
     sampleSize = len(data)
@@ -97,7 +97,38 @@ def makeLabelVec(data, positiveLabel):
         else:
             labelVec[k] = -1    
     return labelVec
-                    
+          
+
+#calculates HORIZONTAL symmetry and intensity
+def featureExtract(x):
+    x = np.reshape(x, (16,16))   
+    #flips horizontally...
+    flipx = np.flip(x, 1)
+    diff = np.abs(x - flipx)
+    sym = -np.sum(np.sum(diff))/256  
+    intense = np.sum(np.sum(x))/256
+    return [sym, intense]
+
+def createFeatMatrix(data):
+    featMatrix = np.zeros((len(data), 4))
+    
+    for i in range(len(data)):
+        extractedFeatures = featureExtract(data[i][1:])
+        featMatrix[i][0] = data[i][0]
+        featMatrix[i][1] = extractedFeatures[0]
+        featMatrix[i][2] = extractedFeatures[1]
+        featMatrix[i][3] = 1
+    return featMatrix
+
+
+def calculateEin(featMatrix, weights, labelVec):
+    innerSum = 0
+    for i in range(len(featMatrix)):
+        x = trainFeatMatrix[i][1:]
+        innerSum = innerSum + np.log(1+np.exp(-labelVec[i]*np.dot(weights.transpose(),x)))
+        
+    return (innerSum/len(featMatrix))
+    
     
     
 
@@ -107,9 +138,20 @@ print("Training Data from: ", trainFile)
 print("Dimension: ", len(trainData[0])-1)
 print("# of datapoints: ", len(trainData))
 labelVec = makeLabelVec(trainData, positiveLabel)
+trainFeatMatrix = createFeatMatrix(trainData)
 
-weights = train(trainData, learningRate, labelVec)
-#print("Weights: ", weights)
+#save to text file
+
+text_file = open('trainOutput.txt', 'w')
+for i in range(len(trainFeatMatrix)):
+    text_file.write(str(trainFeatMatrix[i]))
+    text_file.write("\n")
+text_file.close()
+
+
+weights = train(trainFeatMatrix, learningRate, labelVec)
+ein = calculateEin(trainFeatMatrix, weights, labelVec)
+print("\n", "Ein=", ein)
 
 print("\n")
 
@@ -119,7 +161,15 @@ testData = np.loadtxt(testFile)
 print("Testing Data from: ", testFile)
 print("Dimension: ", len(testData[0])-1)
 print("# of datapoints: ", len(testData))
-errorVec = test(testData, weights, positiveLabel)
+testFeatMatrix = createFeatMatrix(testData)
+
+text_file = open('testOutput.txt', 'w')
+for i in range(len(testFeatMatrix)):
+    text_file.write(str(testFeatMatrix[i]))
+    text_file.write("\n")
+text_file.close()
+
+errorVec = test(testFeatMatrix, weights, positiveLabel)
 #print("Errors: ", errorVec)
 
 
@@ -163,13 +213,31 @@ def plotImage(imageNumber):
 
     plt.figure()
     plt.imshow(imageMatrix, cmap = 'gray')
-    titleString = "Image " + str(imageNum) + " labeled as: " + str(label)
+    titleString = "Image " + str(imageNum) + " labeled as: " + "\"" + str(label) + "\""
     plt.title(titleString)
     
     
-    
+'''   
 #investigate points with high error
 for i in range(len(lookPoints)):
     plotImage(lookPoints[i])
+'''
+
+
+'''
+#MATLAB FEATURE EXTRACTION CODE
+function [ output ] = feature_extract( input )
+input = reshape(input,16,16)';
+flip_input = flip(input,2);
+diff = abs(input - flip_input);
+sym = -sum(sum(diff))/256;
+
+intense = sum(sum(input))/256;
+
+output = [sym,intense];
+
+end
+'''
+
 
 
