@@ -14,15 +14,22 @@ import matplotlib.pyplot as plt
 testFile = "zip.test"
 trainFile = "zip.train"
 
-#TODO modify these params to be dynamically decided?
-iterations = 5 
+#modify these params to be dynamically decided?
+iterations = 5
 learningRate = .1
-
 
 positiveLabel = 5
 
+class line(object):
+    def __init__(self, slope, yintercept):
+        self.slope = slope
+        self.yintercept = yintercept
+        
+    def findyval(self, xval):
+        return xval*self.slope + self.yintercept
+
+
 def computeGradient(data, weights, labelVec):
-    dimension = len(data[0])-1
     sampleSize = len(data)
     innerSum = 0
 
@@ -34,8 +41,7 @@ def computeGradient(data, weights, labelVec):
         
         numerator = np.dot(labelVec[i], x)
         innerSum = innerSum +(numerator/denominator)
-    
-    gradient = -(innerSum/dimension)
+    gradient = -(innerSum/sampleSize)
     return gradient
 
 
@@ -56,7 +62,7 @@ def train(data, lRate, labelVec):
      
     for j in range(iterations):
                         
-        print("Running iteration ", j, "of", iterations-1)
+        print("Running iteration", j, "of", iterations-1)
         
         for x in data:
             #compute gradient
@@ -124,57 +130,158 @@ def createFeatMatrix(data):
 def calculateEin(featMatrix, weights, labelVec):
     innerSum = 0
     for i in range(len(featMatrix)):
-        x = trainFeatMatrix[i][1:]
+        x = featMatrix[i][1:]
+        
         innerSum = innerSum + np.log(1+np.exp(-labelVec[i]*np.dot(weights.transpose(),x)))
         
     return (innerSum/len(featMatrix))
     
+def plotPoints(data, positiveLabel):
     
+    for x in data:
+        if (x[0] == positiveLabel):
+            color = 'blue'
+        else:
+            color = 'red'
+        plt.scatter(x[1], x[2], c=color)
+
+
+
+
+def createThirdOrderMatrix(data):
+    thirdOrderMatrix = np.zeros((len(data), 11))
+    
+    for i in range(len(data)):
+        x = data[i]
+        
+        p1 = x[1]
+        p2 = x[2]
+        
+        thirdOrderMatrix[i][0] = x[0]
+        thirdOrderMatrix[i][1] = p1
+        thirdOrderMatrix[i][2] = p2
+        thirdOrderMatrix[i][3] = p1*p1
+        thirdOrderMatrix[i][4] = p1*p2
+        thirdOrderMatrix[i][5] = p2*p2
+        thirdOrderMatrix[i][6] = p1*p1*p1
+        thirdOrderMatrix[i][7] = p1*p1*p2
+        thirdOrderMatrix[i][8] = p1*p2*p2
+        thirdOrderMatrix[i][9] = p2*p2*p2
+        thirdOrderMatrix[i][10] = 1
+
+    
+    return thirdOrderMatrix
+
+
+
+
     
 
-#TRAINING DATA
+                                    #TRAINING DATA
+#first order calculation
 trainData = np.loadtxt(trainFile)
 print("Training Data from: ", trainFile)
 print("Dimension: ", len(trainData[0])-1)
 print("# of datapoints: ", len(trainData))
+print("\n")
 labelVec = makeLabelVec(trainData, positiveLabel)
 trainFeatMatrix = createFeatMatrix(trainData)
 
 #save to text file
-
 text_file = open('trainOutput.txt', 'w')
 for i in range(len(trainFeatMatrix)):
     text_file.write(str(trainFeatMatrix[i]))
     text_file.write("\n")
 text_file.close()
 
-
+print("training first order...")
 weights = train(trainFeatMatrix, learningRate, labelVec)
 ein = calculateEin(trainFeatMatrix, weights, labelVec)
-print("\n", "Ein=", ein)
+
+#plot training data
+plt.xlabel('symmetry')
+plt.ylabel('intensity')
+plotPoints(trainFeatMatrix, positiveLabel)
+trainLine = line(-(weights[0]/weights[1]),-(weights[2]/weights[1]))
+x = np.arange(-0.5, 0, 0.01)
+y = trainLine.findyval(x)
+plt.plot(x,y,c='black')
+plt.title("first order training data, Ein= " + str(ein))
+
+
+
+#third order calculation
+print("\n")
+print("training third order...")
+thirdOrderMatrix = createThirdOrderMatrix(trainFeatMatrix)
+thirdOrderWeights = train(thirdOrderMatrix, learningRate, labelVec)
+
+einThirdOrder = calculateEin(thirdOrderMatrix, thirdOrderWeights, labelVec)
+
+
+
 
 print("\n")
 
 
-#TESTING DATA
+
+
+                                #TESTING DATA
+#first order calculation
 testData = np.loadtxt(testFile)
 print("Testing Data from: ", testFile)
 print("Dimension: ", len(testData[0])-1)
 print("# of datapoints: ", len(testData))
 testFeatMatrix = createFeatMatrix(testData)
 
+#save to text file
 text_file = open('testOutput.txt', 'w')
 for i in range(len(testFeatMatrix)):
     text_file.write(str(testFeatMatrix[i]))
     text_file.write("\n")
 text_file.close()
 
-errorVec = test(testFeatMatrix, weights, positiveLabel)
+#errorVec = test(testFeatMatrix, weights, positiveLabel)
 #print("Errors: ", errorVec)
 
+labelVecTest = makeLabelVec(testData, positiveLabel)
+einTest = calculateEin(testFeatMatrix, weights, labelVecTest)
 
+#plot testing data
+plt.figure()
+plt.xlabel('symmetry')
+plt.ylabel('intensity')
+plotPoints(testFeatMatrix, positiveLabel)
+testLine = line(-(weights[0]/weights[1]),-(weights[2]/weights[1]))
+
+x = np.arange(-0.5, 0, 0.01)
+y = testLine.findyval(x)
+plt.plot(x,y,c='black')
+
+plt.title("first order testing data, Ein= " + str(einTest))
+
+
+#third order calculation
+thirdOrderMatrix = createThirdOrderMatrix(testFeatMatrix)
+einTestThirdOrder = calculateEin(thirdOrderMatrix, thirdOrderWeights, labelVecTest)
+
+
+
+
+                                #PRINT EACH Ein
+print("\n")
+print("~~~~~~~~~~~~~~~~~~~~~~~~~")
+print("Training First Order Ein=", ein)
+print("Testing First Order Ein=", einTest)
+print("Training Third Order Ein=", einThirdOrder)
+print("Testing Third Order Ein=", einTestThirdOrder)
+
+
+
+
+
+'''
 #plot the errors
-
 lookPoints = []
 xval = 0
 for error in errorVec:
@@ -190,7 +297,7 @@ plt.xlabel('data')
 plt.ylabel('error')
 
 print (">0.5 error at: ", lookPoints)
-
+'''
 
 def plotImage(imageNumber):
     imageNum = imageNumber
@@ -222,22 +329,3 @@ def plotImage(imageNumber):
 for i in range(len(lookPoints)):
     plotImage(lookPoints[i])
 '''
-
-
-'''
-#MATLAB FEATURE EXTRACTION CODE
-function [ output ] = feature_extract( input )
-input = reshape(input,16,16)';
-flip_input = flip(input,2);
-diff = abs(input - flip_input);
-sym = -sum(sum(diff))/256;
-
-intense = sum(sum(input))/256;
-
-output = [sym,intense];
-
-end
-'''
-
-
-
