@@ -183,7 +183,7 @@ trainData = np.loadtxt(trainFile)
 print("Training Data from: ", trainFile)
 print("Dimension: ", len(trainData[0])-1)
 print("# of datapoints: ", len(trainData))
-print("\n")
+print("")
 labelVec = makeLabelVec(trainData, positiveLabel)
 trainFeatMatrix = createFeatMatrix(trainData)
 
@@ -270,12 +270,13 @@ einTestThirdOrder = calculateEin(thirdOrderMatrix, thirdOrderWeights, labelVecTe
 
                                 #PRINT EACH Ein
 print("\n")
-print("~~~~~~~~~~~~~~~~~~~~~~~~~")
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 print("Training First Order Ein=", ein)
 print("Testing First Order Ein=", einTest)
+print("")
 print("Training Third Order Ein=", einThirdOrder)
 print("Testing Third Order Ein=", einTestThirdOrder)
-
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
 
 
