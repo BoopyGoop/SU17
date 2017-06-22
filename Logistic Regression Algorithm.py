@@ -194,7 +194,7 @@ for i in range(len(trainFeatMatrix)):
     text_file.write("\n")
 text_file.close()
 
-print("training first order...")
+print("training linear...")
 weights = train(trainFeatMatrix, learningRate, labelVec)
 ein = calculateEin(trainFeatMatrix, weights, labelVec)
 
@@ -206,7 +206,7 @@ trainLine = line(-(weights[0]/weights[1]),-(weights[2]/weights[1]))
 x = np.arange(-0.5, 0, 0.01)
 y = trainLine.findyval(x)
 plt.plot(x,y,c='black')
-plt.title("first order training data, Ein= " + str(ein))
+plt.title("linear training data, Ein= " + str(ein))
 
 
 
@@ -258,7 +258,7 @@ x = np.arange(-0.5, 0, 0.01)
 y = testLine.findyval(x)
 plt.plot(x,y,c='black')
 
-plt.title("first order testing data, Ein= " + str(einTest))
+plt.title("linear testing data, Ein= " + str(einTest))
 
 
 #third order calculation
@@ -270,13 +270,13 @@ einTestThirdOrder = calculateEin(thirdOrderMatrix, thirdOrderWeights, labelVecTe
 
                                 #PRINT EACH Ein
 print("\n")
-print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-print("Training First Order Ein=", ein)
-print("Testing First Order Ein=", einTest)
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+print("Linear Training Ein=", ein)
+print("Linear Testing Ein=", einTest)
 print("")
-print("Training Third Order Ein=", einThirdOrder)
-print("Testing Third Order Ein=", einTestThirdOrder)
-print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+print("Third Order Training Ein=", einThirdOrder)
+print("Third Order Testing Ein=", einTestThirdOrder)
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
 
 
