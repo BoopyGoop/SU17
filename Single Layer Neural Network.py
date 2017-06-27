@@ -14,7 +14,10 @@ from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets('/mnist',one_hot=True)
 
 #number of nodes in the hidden layer
-numNodesHL = 500
+numNodesHL = 100
+
+iterations = 10
+
 
 numClasses = 10
 inputSize = 784
@@ -39,18 +42,16 @@ def NN_model(data):
     
 
 
-def train(x):
+def train(x, iterations):
     prediction = NN_model(x)
 
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits = prediction, labels = y))
     optimizer = tf.train.AdamOptimizer().minimize(cost)
     
-    numIterations = 10
-    
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         
-        for iteration in range(numIterations):
+        for iteration in range(iterations):
             iterationLoss = 0
             
             for i in range(int(mnist.train.num_examples/batchSize)):
@@ -58,7 +59,7 @@ def train(x):
                 i, c = sess.run([optimizer, cost], feed_dict = {x: xIter, y: yIter})
                 iterationLoss = iterationLoss + c
 
-            print("Iteration", iteration, "of", numIterations-1, "completed")
+            print("Iteration", iteration, "of", iterations-1, "completed")
             print("Loss:", iterationLoss)
             print("")
 
@@ -67,4 +68,4 @@ def train(x):
         print("Accuracy:", accuracy.eval({x: mnist.validation.images, y: mnist.validation.labels}))
 
 
-train(x)
+train(x, iterations)
