@@ -2,6 +2,8 @@
 """
 Created on Mon Jun 26 11:32:13 2017
 
+implementation of a single layer Neural Network, tested on mnist data set
+
 @author: Carter Carlos
 """
 
@@ -28,7 +30,6 @@ def NN_model(data):
     
     outputLayer = {'weights': tf.Variable(tf.random_normal([numNodesHL, numClasses])), 'biases': tf.Variable(tf.random_normal([numClasses]))}
     
-    #TODO problems, Will Robinson
     hLayer = tf.add(tf.matmul(data, hiddenLayer['weights']), hiddenLayer['biases'])
     hLayer = tf.nn.relu(hLayer)
     output = tf.add(tf.matmul(hLayer, outputLayer['weights']), outputLayer['biases'])
