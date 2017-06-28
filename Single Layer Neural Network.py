@@ -29,8 +29,8 @@ y = tf.placeholder('float')
 
 def NN_model(data):
     
+    #dictionaries hold wiehgts/biases of each layer, randomly generated at start
     hiddenLayer = {'weights': tf.Variable(tf.random_normal([inputSize, numNodesHL])), 'biases': tf.Variable(tf.random_normal([numNodesHL]))}
-    
     outputLayer = {'weights': tf.Variable(tf.random_normal([numNodesHL, numClasses])), 'biases': tf.Variable(tf.random_normal([numClasses]))}
     
     hLayer = tf.add(tf.matmul(data, hiddenLayer['weights']), hiddenLayer['biases'])
@@ -45,7 +45,7 @@ def NN_model(data):
 def train(x, iterations):
     prediction = NN_model(x)
 
-    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits = prediction, labels = y))
+    cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits = prediction, labels = y))
     optimizer = tf.train.AdamOptimizer().minimize(cost)
     
     with tf.Session() as sess:
