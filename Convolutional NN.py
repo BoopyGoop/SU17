@@ -14,7 +14,7 @@ mnist = input_data.read_data_sets('/mnist',one_hot=True)
 #ARCHITECTURE:
 #INPUT -> CONV -> RELU -> POOL -> CONV -> RELU -> POOL -> FC -> OUTPUT
 
-iterations = 2000
+iterations = 3000
 
 numClasses = 10
 inputSize = 784
@@ -45,20 +45,20 @@ def deepNN(x):
     #Conv layer 1
     wConv1 = weight_variable([5, 5, 1, 32])
     bConv1 = bias_variable([32])
+    #Relu layer 1
     hConv1 = tf.nn.relu(conv2d(xReshape, wConv1) + bConv1)
     
     #Pool layer 1
     hPool1 = maxPool2x2(hConv1)
     
-    
     #Conv layer 2
     wConv2 = weight_variable([5, 5, 32, 64])
     bConv2 = bias_variable([64])
+    #Relu layer 2
     hConv2 = tf.nn.relu(conv2d(hPool1, wConv2) + bConv2)
     
     #Pool layer 2
-    hPool2 = maxPool2x2(hConv2)
-    
+    hPool2 = maxPool2x2(hConv2)  
     
     #Fully connected layer
     wFC = weight_variable([7*7*64, nodesFClayer])
