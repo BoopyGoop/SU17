@@ -20,7 +20,7 @@ numClasses = 10
 inputSize = 784
 batchSize = 10
 
-nodesFClayer = 500
+nodesFClayer = 1024
 
 def weight_variable(shape):
   initial = tf.truncated_normal(shape, stddev=0.1)
@@ -43,18 +43,18 @@ def deepNN(x):
     xReshape = tf.reshape(x, [-1, 28, 28, 1])
     
     #Conv layer 1
-    wConv = weight_variable([5, 5, 1, 32])
-    bConv = bias_variable([32])
-    hConv = tf.nn.relu(conv2d(xReshape, wConv) + bConv)
+    wConv1 = weight_variable([5, 5, 1, 32])
+    bConv1 = bias_variable([32])
+    hConv1 = tf.nn.relu(conv2d(xReshape, wConv1) + bConv1)
     
     #Pool layer 1
-    hPool = maxPool2x2(hConv)
+    hPool1 = maxPool2x2(hConv1)
     
     
     #Conv layer 2
     wConv2 = weight_variable([5, 5, 32, 64])
     bConv2 = bias_variable([64])
-    hConv2 = tf.nn.relu(conv2d(hPool, wConv2) + bConv2)
+    hConv2 = tf.nn.relu(conv2d(hPool1, wConv2) + bConv2)
     
     #Pool layer 2
     hPool2 = maxPool2x2(hConv2)
@@ -66,21 +66,24 @@ def deepNN(x):
     hPool2Flat = tf.reshape(hPool2, [-1, 7*7*64])
     hFC = tf.nn.relu(tf.matmul(hPool2Flat, wFC) + bFC)
     
+    keepProb = tf.placeholder(tf.float32)
+    hFCdrop = tf.nn.dropout(hFC, keepProb)
+    
     
     #Output layer
     wOut = weight_variable([nodesFClayer, numClasses])
     bOut = bias_variable([numClasses])
     
-    yConv = tf.matmul(hFC, wOut) + bOut
+    yConv = tf.matmul(hFCdrop, wOut) + bOut
 
-    return yConv
+    return yConv, keepProb
 
 
 
 x = tf.placeholder('float', [None, inputSize])
 y = tf.placeholder('float', [None, numClasses])
 
-yConv = deepNN(x)
+yConv, keepProb = deepNN(x)
 
 cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yConv))
 train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
@@ -96,12 +99,12 @@ with tf.Session() as sess:
         
         if i %100 == 0:
             
-            trainAcc = accuracy.eval(feed_dict={x: batch[0], y: batch[1]})
+            trainAcc = accuracy.eval(feed_dict={x: batch[0], y: batch[1], keepProb: 1.0})
             print("Step", i, ", training accuracy", trainAcc)
             
-        train_step.run(feed_dict= {x: batch[0], y: batch[1]})
+        train_step.run(feed_dict= {x: batch[0], y: batch[1], keepProb: 0.5})
         
     print("")
-    print("test accuracy", accuracy.eval(feed_dict= { x: mnist.validation.images, y: mnist.validation.labels}))
+    print("test accuracy", accuracy.eval(feed_dict= { x: mnist.validation.images, y: mnist.validation.labels, keepProb: 1.0}))
 
 
