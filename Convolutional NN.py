@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Jun 28 11:32:00 2017
-
 @author: Carter Carlos
 """
 
@@ -85,17 +84,42 @@ y = tf.placeholder('float', [None, numClasses])
 
 yConv, keepProb = deepNN(x)
 
-cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yConv))
-train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-correct_prediction = tf.equal(tf.argmax(yConv, 1), tf.argmax(y, 1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+with tf.name_scope("loss"):
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yConv))
+
+with tf.name_scope("train"):
+    train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
+
+with tf.name_scope("xent"):
+    correct_prediction = tf.equal(tf.argmax(yConv, 1), tf.argmax(y, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
 
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     
+    writer = tf.summary.FileWriter("/mnist_vis/2", sess.graph)  
+    tf.summary.scalar('loss', loss)
+    tf.summary.scalar('accuracy', accuracy)
+    
+    
+    merged_summary = tf.summary.merge_all()
+
+    
+    
+    
     for i in range(iterations):
         batch = mnist.train.next_batch(batchSize)
+        
+        
+        #DOES NOT LIKE THIS
+        
+        if i %5 == 0:
+            s=sess.run(merged_summary, feed_dict= {x: batch[0], y: batch[1]})
+            writer.add_summary(s, i)
+        
+        #################
         
         if i %100 == 0:
             
@@ -106,5 +130,3 @@ with tf.Session() as sess:
         
     print("")
     print("test accuracy", accuracy.eval(feed_dict= { x: mnist.validation.images, y: mnist.validation.labels, keepProb: 1.0}))
-
-
