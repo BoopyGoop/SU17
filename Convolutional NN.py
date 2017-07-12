@@ -7,7 +7,10 @@ Created on Wed Jun 28 11:32:00 2017
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
+
 mnist = input_data.read_data_sets('/mnist',one_hot=True)
+
+LOGDIR = "/mnist_vis/3"
 
 
 #ARCHITECTURE:
@@ -79,6 +82,8 @@ def deepNN(x):
 
 
 
+
+    
 x = tf.placeholder('float', [None, inputSize])
 y = tf.placeholder('float', [None, numClasses])
 
@@ -86,47 +91,60 @@ yConv, keepProb = deepNN(x)
 
 with tf.name_scope("loss"):
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yConv))
+    loss_summary = tf.summary.scalar("loss", loss)
 
 with tf.name_scope("train"):
     train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
 
-with tf.name_scope("xent"):
+with tf.name_scope("accuracy"):
     correct_prediction = tf.equal(tf.argmax(yConv, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    accuracy_summary = tf.summary.scalar("accuracy", accuracy)
 
 
+    
 
+#tf.reset_default_graph()
 with tf.Session() as sess:
+
+    
+    
+    
     sess.run(tf.global_variables_initializer())
     
-    writer = tf.summary.FileWriter("/mnist_vis/2", sess.graph)  
-    tf.summary.scalar('loss', loss)
-    tf.summary.scalar('accuracy', accuracy)
+    writer = tf.summary.FileWriter(LOGDIR,sess.graph)  
     
-    
-    merged_summary = tf.summary.merge_all()
+    #maybe doesn't like this?
+    merged_summary = tf.summary.merge([loss_summary, accuracy_summary])
 
-    
+
     
     
     for i in range(iterations):
         batch = mnist.train.next_batch(batchSize)
-        
+      
         
         #DOES NOT LIKE THIS
         
         if i %5 == 0:
-            s=sess.run(merged_summary, feed_dict= {x: batch[0], y: batch[1]})
+            _,s=sess.run([train_step, merged_summary], feed_dict= {x: batch[0], y: batch[1], keepProb: 0.7})
+
             writer.add_summary(s, i)
-        
+            
+            asdf=1
         #################
         
         if i %100 == 0:
             
+            #TODO
             trainAcc = accuracy.eval(feed_dict={x: batch[0], y: batch[1], keepProb: 1.0})
+
             print("Step", i, ", training accuracy", trainAcc)
             
         train_step.run(feed_dict= {x: batch[0], y: batch[1], keepProb: 0.5})
+
+        
         
     print("")
     print("test accuracy", accuracy.eval(feed_dict= { x: mnist.validation.images, y: mnist.validation.labels, keepProb: 1.0}))
+    
